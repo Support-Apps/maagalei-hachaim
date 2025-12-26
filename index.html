@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גלגל החיים - מעגלי איכות החיים</title>
+    <style>
+        @font-face {
+            font-family: 'Gveret Levin';
+            src: local('Gveret Levin AlefAlefAlef'), 
+                 local('GveretLevinAlefAlefAlef-Regular'),
+                 local('Gveret Levin'),
+                 local('GveretLevin');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Gveret Levin', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFE4EC 0%, #FFF0F5 50%, #FFE4EC 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .bsd {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            color: #FF69B4;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #DAA520;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #B8860B;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 40px;
+        }
+        
+        .wheel-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 15px rgba(218, 165, 32, 0.3));
+        }
+        
+        .section-bg {
+            stroke: #DAA520;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .section-bg:hover {
+            filter: brightness(1.1);
+        }
+        
+        .section-fill {
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+        
+        .section-label {
+            font-family: 'Gveret Levin', Arial, sans-serif;
+            font-size: 9px;
+            fill: #4a4a4a;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        
+        .center-circle {
+            fill: #FFE4EC;
+            stroke: #DAA520;
+            stroke-width: 3;
+        }
+        
+        .center-score {
+            font-family: 'Gveret Levin', Arial, sans-serif;
+            font-size: 28px;
+            fill: #DAA520;
+            font-weight: bold;
+        }
+        
+        .center-label {
+            font-family: 'Gveret Levin', Arial, sans-serif;
+            font-size: 12px;
+            fill: #B8860B;
+        }
+        
+        .grid-circle {
+            fill: none;
+            stroke: rgba(218, 165, 32, 0.2);
+            stroke-width: 1;
+        }
+        
+        .controls-container {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid #DAA520;
+            box-shadow: 0 4px 15px rgba(218, 165, 32, 0.2);
+        }
+        
+        .controls-title {
+            color: #DAA520;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .slider-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+        }
+        
+        .notes-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .note-field {
+            flex: 1;
+        }
+        
+        .note-label {
+            font-size: 0.75em;
+            color: #888;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .note-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            border-radius: 8px;
+            font-family: 'Gveret Levin', Arial, sans-serif;
+            font-size: 0.85em;
+            resize: none;
+            height: 50px;
+            direction: rtl;
+        }
+        
+        .note-input:focus {
+            outline: none;
+            border-color: #DAA520;
+        }
+        
+        .note-input.improve {
+            background: rgba(152, 216, 200, 0.15);
+        }
+        
+        .note-input.preserve {
+            background: rgba(255, 182, 193, 0.15);
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .slider-label {
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        .slider-value {
+            background: #DAA520;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .slider-wrapper {
+            position: relative;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #DAA520;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #DAA520;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-family: 'Gveret Levin', Arial, sans-serif;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #98D8C8, #7FC8B8);
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(152, 216, 200, 0.4);
+        }
+        
+        .summary-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border: 2px solid #DAA520;
+        }
+        
+        .summary-title {
+            color: #DAA520;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        
+        .summary-text {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        
+        .summary-highlight {
+            color: #DAA520;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .wheel-container {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .sliders-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bsd">בס"ד</div>
+    
+    <div class="container">
+        <h1>🌸 גלגל החיים 🌸</h1>
+        <p class="subtitle">בדקי את איכות ואיזון מעגלי החיים שלך</p>
+        
+        <div class="wheel-container">
+            <svg class="wheel-svg" viewBox="0 0 400 400" id="wheelSvg">
+                <!-- Grid circles for reference -->
+                <circle class="grid-circle" cx="200" cy="200" r="40"/>
+                <circle class="grid-circle" cx="200" cy="200" r="80"/>
+                <circle class="grid-circle" cx="200" cy="200" r="120"/>
+                <circle class="grid-circle" cx="200" cy="200" r="160"/>
+                
+                <!-- Sections will be drawn by JavaScript -->
+                <g id="sectionsGroup"></g>
+                
+                <!-- Center circle -->
+                <circle class="center-circle" cx="200" cy="200" r="45"/>
+                <text class="center-score" x="200" y="195" text-anchor="middle" id="centerScore">0</text>
+                <text class="center-label" x="200" y="215" text-anchor="middle">ממוצע</text>
+            </svg>
+        </div>
+        
+        <div class="controls-container">
+            <h2 class="controls-title">✨ דרגי כל תחום מ-1 עד 10 ✨</h2>
+            
+            <div class="sliders-grid" id="slidersContainer">
+                <!-- Sliders will be generated by JavaScript -->
+            </div>
+            
+            <div class="btn-container">
+                <button class="btn btn-reset" onclick="doReset()">🔄 איפוס</button>
+            </div>
+            
+            <div class="summary-box" id="summaryBox">
+                <h3 class="summary-title">📊 סיכום</h3>
+                <p class="summary-text" id="summaryText">הזיזי את הסליידרים כדי לראות את התובנות שלך</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Reset function at the START of script
+        function doReset() {
+            alert('מאפס את כל הדירוגים!');
+            lifeAreas.forEach(area => {
+                area.value = 0;
+                const slider = document.getElementById('slider-' + area.id);
+                if (slider) slider.value = 0;
+                const improve = document.getElementById('improve-' + area.id);
+                if (improve) improve.value = '';
+                const preserve = document.getElementById('preserve-' + area.id);
+                if (preserve) preserve.value = '';
+            });
+            updateAll();
+        }
+        
+        // Life areas data
+        const lifeAreas = [
+            { id: 'relationship', name: 'זוגיות', emoji: '💕', color: '#FFB6C1', darkColor: '#FF69B4', value: 0 },
+            { id: 'career', name: 'עבודה/קריירה', emoji: '💼', color: '#DDA0DD', darkColor: '#BA55D3', value: 0 },
+            { id: 'health', name: 'בריאות', emoji: '🌿', color: '#98D8C8', darkColor: '#3CB371', value: 0 },
+            { id: 'finance', name: 'כספים', emoji: '💰', color: '#F0E68C', darkColor: '#DAA520', value: 0 },
+            { id: 'family', name: 'משפחה', emoji: '👨‍👩‍👧‍👦', color: '#FFDAB9', darkColor: '#FF8C00', value: 0 },
+            { id: 'friends', name: 'חברים', emoji: '👯', color: '#B0E0E6', darkColor: '#4682B4', value: 0 },
+            { id: 'growth', name: 'צמיחה אישית', emoji: '🌱', color: '#C8E6C9', darkColor: '#66BB6A', value: 0 },
+            { id: 'fun', name: 'כיף ופנאי', emoji: '🎨', color: '#E6E6FA', darkColor: '#9370DB', value: 0 }
+        ];
+        
+        const centerX = 200;
+        const centerY = 200;
+        const maxRadius = 160;
+        const minRadius = 45;
+        const numSections = lifeAreas.length;
+        const anglePerSection = (2 * Math.PI) / numSections;
+        
+        // Create polar to cartesian converter
+        function polarToCartesian(cx, cy, radius, angleInRadians) {
+            return {
+                x: cx + radius * Math.cos(angleInRadians),
+                y: cy + radius * Math.sin(angleInRadians)
+            };
+        }
+        
+        // Create section path
+        function createSectionPath(index, fillRatio = 1) {
+            const startAngle = index * anglePerSection - Math.PI / 2;
+            const endAngle = (index + 1) * anglePerSection - Math.PI / 2;
+            const radius = minRadius + (maxRadius - minRadius) * fillRatio;
+            
+            const start = polarToCartesian(centerX, centerY, minRadius, startAngle);
+            const end = polarToCartesian(centerX, centerY, minRadius, endAngle);
+            const outerStart = polarToCartesian(centerX, centerY, radius, startAngle);
+            const outerEnd = polarToCartesian(centerX, centerY, radius, endAngle);
+            
+            const largeArcFlag = anglePerSection > Math.PI ? 1 : 0;
+            
+            return `M ${start.x} ${start.y} 
+                    L ${outerStart.x} ${outerStart.y} 
+                    A ${radius} ${radius} 0 ${largeArcFlag} 1 ${outerEnd.x} ${outerEnd.y} 
+                    L ${end.x} ${end.y} 
+                    A ${minRadius} ${minRadius} 0 ${largeArcFlag} 0 ${start.x} ${start.y}`;
+        }
+        
+        // Create full section path (background)
+        function createFullSectionPath(index) {
+            return createSectionPath(index, 1);
+        }
+        
+        // Get label position - centered in section
+        function getLabelPosition(index) {
+            const midAngle = (index + 0.5) * anglePerSection - Math.PI / 2;
+            const labelRadius = (minRadius + maxRadius) / 2;
+            return polarToCartesian(centerX, centerY, labelRadius, midAngle);
+        }
+        
+        // Initialize wheel
+        function initWheel() {
+            const sectionsGroup = document.getElementById('sectionsGroup');
+            sectionsGroup.innerHTML = '';
+            
+            lifeAreas.forEach((area, index) => {
+                // Background section
+                const bgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                bgPath.setAttribute('d', createFullSectionPath(index));
+                bgPath.setAttribute('fill', area.color);
+                bgPath.setAttribute('class', 'section-bg');
+                bgPath.setAttribute('data-index', index);
+                bgPath.addEventListener('click', () => cycleValue(index));
+                sectionsGroup.appendChild(bgPath);
+                
+                // Fill section (for showing value)
+                const fillPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                fillPath.setAttribute('d', createSectionPath(index, 0));
+                fillPath.setAttribute('fill', area.darkColor);
+                fillPath.setAttribute('class', 'section-fill');
+                fillPath.setAttribute('id', 'fill-' + area.id);
+                fillPath.setAttribute('opacity', '0.7');
+                sectionsGroup.appendChild(fillPath);
+                
+                // Label - text only (no emoji)
+                const labelPos = getLabelPosition(index);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', labelPos.x);
+                text.setAttribute('y', labelPos.y);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'section-label');
+                text.textContent = area.name;
+                sectionsGroup.appendChild(text);
+            });
+        }
+        
+        // Initialize sliders
+        function initSliders() {
+            const container = document.getElementById('slidersContainer');
+            container.innerHTML = '';
+            
+            lifeAreas.forEach((area, index) => {
+                const sliderItem = document.createElement('div');
+                sliderItem.className = 'slider-item';
+                sliderItem.style.borderRight = `4px solid ${area.darkColor}`;
+                
+                sliderItem.innerHTML = `
+                    <div class="slider-header">
+                        <span class="slider-label" style="color: ${area.darkColor}">${area.emoji} ${area.name}</span>
+                        <span class="slider-value" id="value-${area.id}" style="background: ${area.darkColor}">0</span>
+                    </div>
+                    <div class="slider-wrapper">
+                        <input type="range" id="slider-${area.id}" min="0" max="10" value="0" 
+                               style="background: linear-gradient(to left, ${area.color}, ${area.darkColor})"
+                               oninput="updateValue(${index}, this.value)">
+                    </div>
+                    <div class="notes-container">
+                        <div class="note-field">
+                            <label class="note-label">🌱 לשיפור:</label>
+                            <textarea class="note-input improve" id="improve-${area.id}" placeholder="מה לשפר?"></textarea>
+                        </div>
+                        <div class="note-field">
+                            <label class="note-label">💎 לשימור:</label>
+                            <textarea class="note-input preserve" id="preserve-${area.id}" placeholder="מה לשמר?"></textarea>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(sliderItem);
+            });
+        }
+        
+        // Update value from slider
+        function updateValue(index, value) {
+            lifeAreas[index].value = parseInt(value);
+            updateAll();
+        }
+        
+        // Cycle value on wheel click
+        function cycleValue(index) {
+            lifeAreas[index].value = (lifeAreas[index].value % 10) + 1;
+            const slider = document.getElementById('slider-' + lifeAreas[index].id);
+            if (slider) slider.value = lifeAreas[index].value;
+            updateAll();
+        }
+        
+        // Update all visuals
+        function updateAll() {
+            let total = 0;
+            let lowest = { value: 11, name: '' };
+            let highest = { value: -1, name: '' };
+            
+            lifeAreas.forEach((area, index) => {
+                // Update fill
+                const fillPath = document.getElementById('fill-' + area.id);
+                if (fillPath) {
+                    const fillRatio = area.value / 10;
+                    fillPath.setAttribute('d', createSectionPath(index, fillRatio));
+                }
+                
+                // Update slider value display
+                const valueDisplay = document.getElementById('value-' + area.id);
+                if (valueDisplay) valueDisplay.textContent = area.value;
+                
+                // Track stats
+                total += area.value;
+                if (area.value < lowest.value && area.value > 0) {
+                    lowest = { value: area.value, name: area.name };
+                }
+                if (area.value > highest.value) {
+                    highest = { value: area.value, name: area.name };
+                }
+            });
+            
+            // Update center score
+            const activeAreas = lifeAreas.filter(a => a.value > 0).length;
+            const average = activeAreas > 0 ? (total / activeAreas).toFixed(1) : 0;
+            document.getElementById('centerScore').textContent = average;
+            
+            // Update summary
+            updateSummary(average, lowest, highest, activeAreas);
+        }
+        
+        // Update summary text
+        function updateSummary(average, lowest, highest, activeAreas) {
+            const summaryText = document.getElementById('summaryText');
+            
+            if (activeAreas === 0) {
+                summaryText.innerHTML = 'הזיזי את הסליידרים כדי לראות את התובנות שלך';
+                return;
+            }
+            
+            let html = `<span class="summary-highlight">ממוצע כללי: ${average}/10</span><br><br>`;
+            
+            if (highest.value > 0) {
+                html += `התחום החזק ביותר: <span class="summary-highlight">${highest.name}</span> (${highest.value}/10)<br>`;
+            }
+            
+            if (lowest.value < 11 && lowest.value !== highest.value) {
+                html += `תחום לחיזוק: <span class="summary-highlight">${lowest.name}</span> (${lowest.value}/10)<br>`;
+            }
+            
+            if (average >= 8) {
+                html += '<br>🌟 מדהים! את מאוזנת ומשגשגת!';
+            } else if (average >= 6) {
+                html += '<br>✨ יופי! יש מקום לצמיחה בכמה תחומים';
+            } else if (average >= 4) {
+                html += '<br>💪 זה הזמן להשקיע באיזון החיים';
+            } else if (average > 0) {
+                html += '<br>🌱 התחלה חדשה - כל צעד קטן חשוב!';
+            }
+            
+            summaryText.innerHTML = html;
+        }
+        
+        // Initialize
+        initWheel();
+        initSliders();
+    </script>
+</body>
+</html>
